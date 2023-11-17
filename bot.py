@@ -82,6 +82,7 @@ class bot:
         else:
             vid.steams.order_by("resolution").first().download()
 
+
 if __name__ == "__main__":
     bot = bot()
     bot.chose_function()
