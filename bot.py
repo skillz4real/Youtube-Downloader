@@ -1,4 +1,5 @@
 from pytube import Playlist, YouTube
+from pytube.cli import on_progress
 import os 
 
 class bot:
@@ -51,9 +52,10 @@ class bot:
 
         #downloading videos in playlist
         for vid in playlist.videos:
-            print(vid.title)
+            print(f"downloading {vid.title}\n")
+            vid.register_on_progress_callback(on_progress)
             if audio:
-                print(os.listdir())
+                #print(os.listdir())
                 vid.streams.filter(only_audio=audio).first().download()
                 #os.rename(f"{vid.title}.mp4", f"{vid.title}_audio.mp4")
             else:
