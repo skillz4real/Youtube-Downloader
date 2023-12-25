@@ -59,7 +59,7 @@ class bot:
                 vid.streams.filter(only_audio=audio).first().download()
                 #os.rename(f"{vid.title}.mp4", f"{vid.title}_audio.mp4")
             else:
-                vid.steams.order_by("resolution").first().download()
+                vid.streams.order_by("resolution").first().download()
 
 
     def download_video(self):
@@ -82,7 +82,7 @@ class bot:
             vid.streams.filter(only_audio=audio).first().download()
             os.rename(f"{vid.title}.mp4", f"{vid.title}_audio.mp4")
         else:
-            vid.steams.order_by("resolution").first().download()
+            vid.streams.order_by("resolution").first().download()
 
 
 if __name__ == "__main__":
