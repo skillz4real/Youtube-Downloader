@@ -1,4 +1,4 @@
-from pytube import Playlist, YouTube, compat
+from pytube import Playlist, YouTube
 from pytube.cli import on_progress
 import os 
 
@@ -9,10 +9,6 @@ class bot:
         if self.object not in ('c','p','v'):
             self.object = None
         self.url = input("Paste the url of the object (the playlist,channel or video) ")
-        self.proxy_handler = {
-                "socks5": "socks5://192.168.1.2:9100",
-                "socks5": "socks5://192.168.1.2:9100"
-                }
 
 
     def chose_function(self):
@@ -27,7 +23,6 @@ class bot:
     def download_playlist(self):
         """Downloading the playlist in a folder with same title"""
         playlist = Playlist(self.url)
-
         audio = None
         
         #asking user if he needs video or only_audio
