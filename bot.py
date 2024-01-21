@@ -21,11 +21,11 @@ class bot:
     def download_playlist(self):
         """Downloading the playlist in a folder with same title"""
         playlist = Playlist(self.url)
-        audio = None
+        only_audio = None
         
         #asking user if he needs video or only_audio
-        while not audio:
-            user_input = input("Only Audio?(N/y) ").lower()
+        while not only_audio:
+            user_input = input("Would you like to only download the audio?(N/y)").lower()
             if user_input in ('y','n'):
                 audio = user_input == 'y'
                 break
@@ -63,24 +63,29 @@ class bot:
     def download_video(self):
         """downloads single video"""
         vid = YouTube(self.url)
-        audio = None
+        vid.register_on_progress_callback(on_progress)
+        only_audio = None
         
-        while not audio:
+        while not only_audio:
             user_input = input("Would you like to only download the audio?(N/y)").lower()
-            if user_input in ('y','n'):
-                audio = user_input == 'y'
+            if user_input in ('y','n',''):
+                only_audio = user_input == 'y'
                 break
             else:
                 print("please make a valid choice")
 
         if not vid:
-            print(f"check video availability")
+            print(f"check video availability. Video should be publicly available or use the Auth module")
 
-        if audio:
-            vid.streams.filter(only_audio=audio).first().download()
-            os.rename(f"{vid.title}.mp4", f"{vid.title}_audio.mp4")
+        if only_audio:
+            stream = vid.streams.filter(only_audio=only_audio).filter().last()
+            stream.download()
+            title = stream.title
+            ext = stream.mime_type.split('/')[1]
+            os.rename(f"{title}.{ext}", f"{title}_audio.{ext}")
         else:
-            vid.streams.order_by("resolution").first().download()
+            stream = vid.streams.order_by("resolution").filter(progressive=True).last()
+            stream.download()
 
 
 if __name__ == "__main__":
