@@ -5,8 +5,8 @@ import os
 class bot:
     def __init__(self):
         """instantiate bot with a link and define what the link is pointing to"""
-        self.object = input("Are we dealing with a (C)hannel, a (P)laylist or a plain YouTube (V)ideo? ").lower()
-        if self.object not in ('c','p','v'):
+        self.object = input("Downloading a (V)ideo or a (P)laylist? ").lower()
+        if self.object not in ('p','v'):
             self.object = None
         self.url = input("Paste the url of the object (the playlist,channel or video) ")
 
@@ -17,8 +17,6 @@ class bot:
             self.download_playlist()
         if self.object == 'v':
             self.download_video()
-        if self.object == 'c':
-            print("This part still hasn't been completed")
 
     def download_playlist(self):
         """Downloading the playlist in a folder with same title"""
@@ -27,7 +25,7 @@ class bot:
         
         #asking user if he needs video or only_audio
         while not audio:
-            user_input = input("Would you like to only download the audio?(N/y) ").lower()
+            user_input = input("Only Audio?(N/y) ").lower()
             if user_input in ('y','n'):
                 audio = user_input == 'y'
                 break
@@ -35,9 +33,9 @@ class bot:
                 print("please make a valid choice")
 
         #user needs to make sure the playlist is set to Public on YouTube
-        if not playlist:
+        if not playlist.title:
             print(f"please make sure the playlist is publicly available")
-
+            return 0
         #creating folder to download videos will fail if user doesn't have appropriate permissions
         directory = playlist.title
         try:
