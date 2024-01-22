@@ -134,19 +134,16 @@ class bot:
             else:
                 print("please make a valid choice")
         
-        try:
-            if only_audio:
-                stream = vid.streams.filter(only_audio=only_audio).filter().last()
-                stream.download()
-                title = stream.title
-                ext = stream.mime_type.split('/')[1]
-                os.rename(f"{title}.{ext}", f"{title}_audio.{ext}")
-            else:
-                stream = vid.streams.order_by("resolution").filter(progressive=True).last()
-                stream.download()
-        except:
-            print("Make sure the video is publicly available and not age restricted. You can also authenticate your account.")
-
+        if only_audio:
+            stream = vid.streams.filter(only_audio=only_audio).filter().last()
+            stream.download()
+            title = stream.title
+            ext = stream.mime_type.split('/')[1]
+            os.rename(f"{title}.{ext}", f"{title}_audio.{ext}")
+        else:
+            stream = vid.streams.order_by("resolution").filter(progressive=True).last()
+            stream.download()
+        
 if __name__ == "__main__":
     bot = bot()
     bot.chose_function()
