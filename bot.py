@@ -30,7 +30,7 @@ class bot:
 
     def oauth(self):
         """Authetication function"""
-        While True:
+        while True:
             print("Select your authentication method: (1)Through Browser or (2)Through command-line")
             try:
                 user_input = int(input().strip())
