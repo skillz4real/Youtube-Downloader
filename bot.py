@@ -1,42 +1,81 @@
 from pytube import Playlist, YouTube
 from pytube.cli import on_progress
 import os
-import time 
+import time
+import json
 
 class bot:
     def __init__(self):
         """instantiate bot with a link and define what the link is pointing to"""
-        self.object = input("Downloading a (V)ideo or a (P)laylist? ").lower()
+        self.object = input("Downloading a (V)ideo or a (P)laylist? ").strip().lower()
         if self.object not in ('p','v'):
             self.object = None
-        self.url = input("Paste the url of the object (the playlist,channel or video) ")
+        self.url = input("Paste the url of the object (the playlist,channel or video) ").strip().lower()
+        while True:
+            user_input = input("Would you want to authenticate your YouTube Account?(y/n)").lower().strip()
+            if user_input in ('y','n',''):
+                self.auth = user_input == 'y'
+                break
+            else:
+                print("Please enter a valid choice")
 
     def chose_function(self):
         """Chose what function to call"""
+        if self.auth == True:
+            self.oauth()
         if self.object == 'p':
             self.download_playlist()
         if self.object == 'v':
             self.download_video()
 
-    def auth(self):
+    def oauth(self):
         """Authetication function"""
+        While True:
+            print("Select your authentication method: (1)Through Browser or (2)Through command-line")
+            try:
+                user_input = int(input().strip())
+            except:
+                print("Please enter a valid choice")
+            if user_input in (1,2):
+                choice = user_input
+                break
+            else:
+                print("Please enter a valid choice")
+        if choice == 1:
+            if self.object == 'v':
+                return YouTube(self.url,
+                               use_oauth=True, 
+                               allow_oauth_cache=True,
+                               on_progress_callback=on_progress)
+            if self.object == 'p':
+                return Playlist()
+
+
+            
         print("For a more secure app YTDL checks the environment variable $YT_OAUTH before prompting you for your keys. To avoid pasting your keys at each use you can set the keys in your terminal before launching running the bot or add 'export YT_OAUTH=<your keys>' to your shell rc file")
         time.sleep(5)
-        oauth_keys = os.getenv("YT_OAUTH")
+        os.mkdir("__cache__")
+        oauth_keys_value = os.getenv("YT_OAUTH")
         if not oauth_keys:
             oauth_keys = input("Please enter your OAUTH keys: ")
+        json.dumps({"oauth_keys":})
+        cache_dir = pathlib.Path(__file__).parent.resolve()/"__cache__"
+        token_file = os.path.join(cache_dir,"tokens.json")
+        with open(token_file, "w"):
+            
         return oauth_keys
 
 
 
-    def download_playlist(self):
+    def download_playlist(self, playlist=None):
         """Downloading the playlist in a folder with same title"""
-        playlist = Playlist(self.url)
+        if not playlist:
+            playlist = Playlist(self.url)
         only_audio = None
         
         #asking user if he needs video or only_audio
         while not only_audio:
-            user_input = input("Would you like to only download the audio?(N/y)").lower()
+            user_input = input("Would you like to download the audio without the video?(N/y)").lower().strip()
             if user_input in ('y','n',''):
                 audio = user_input == 'y'
                 break
@@ -65,6 +104,8 @@ class bot:
         for vid in playlist.videos:
             print(f"downloading {vid.title}\n")
             vid.register_on_progress_callback(on_progress)
+            vid.use_oauth = True
+            vid.allow_oauth_cache = True
             if only_audio:
                 stream = vid.streams.filter(only_audio=only_audio).filter().last()
                 stream.download()
@@ -76,16 +117,15 @@ class bot:
                 stream.download()
 
 
-    def download_video(self):
+    def download_video(self, vid=None):
         """downloads single video"""
-        vid = YouTube(self.url,
-                      on_progress_callback=on_progress,
-                      use_oauth=True)
-        vid.register_on_progress_callback(on_progress)
+        if not vid:
+            vid = YouTube(self.url,
+                      on_progress_callback=on_progress)
         only_audio = None
         
         while not only_audio:
-            user_input = input("Would you like to only download the audio?(N/y)").lower()
+            user_input = input("Would you like to only download the audio?(N/y)").lower().strip()
             if user_input in ('y','n',''):
                 only_audio = user_input == 'y'
                 break
