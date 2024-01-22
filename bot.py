@@ -21,12 +21,13 @@ class bot:
 
     def chose_function(self):
         """Chose what function to call"""
+        YT_obj = None
         if self.auth == True:
-            self.oauth()
+            YT_obj = self.oauth()
         if self.object == 'p':
             self.download_playlist()
         if self.object == 'v':
-            self.download_video()
+            self.download_video(YT_obj)
 
     def oauth(self):
         """Authetication function"""
@@ -48,7 +49,8 @@ class bot:
                                allow_oauth_cache=True,
                                on_progress_callback=on_progress)
             if self.object == 'p':
-                return Playlist()
+                pass
+                
 
 
             
@@ -117,7 +119,7 @@ class bot:
                 stream.download()
 
 
-    def download_video(self, vid=None):
+    def download_video(self, vid):
         """downloads single video"""
         if not vid:
             vid = YouTube(self.url,
