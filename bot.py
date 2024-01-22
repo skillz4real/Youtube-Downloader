@@ -31,15 +31,11 @@ class bot:
 
     def oauth(self):
         """Authetication function"""
-        if self.object == 'v':
-            return YouTube(self.url,
-                           use_oauth=True, 
-                           allow_oauth_cache=True,
-                           on_progress_callback=on_progress)
-        if self.object == 'p':
-            return 1
+        print("As part of the authentication process YtDl will now download a sample video")
+        print("Please follow the instructions")
+        YouTube("https://www.youtube.com/watch?v=K4TOrB7at0Y",use_oauth=True,allow_oauth_cache=True,on_progress_callback=on_progress).streams.order_by("resolution").first().download()
 
-    def download_playlist(self, p_oauth=None):
+    def download_playlist(self):
         """Downloading the playlist in a folder with same title"""
         playlist = Playlist(self.url)
         only_audio = None
@@ -79,7 +75,7 @@ class bot:
                 vid.use_oauth = True
                 vid.allow_oauth_cache = True
             if only_audio:
-                stream = vid.streams.filter(only_audio=only_audio).filter().last()
+                stream = vid.streams.filter(only_audio=only_audio).last()
                 stream.download()
                 title = stream.title
                 ext = stream.mime_type.split('/')[1]
@@ -89,11 +85,9 @@ class bot:
                 stream.download()
 
 
-    def download_video(self, vid):
-        """downloads single video"""
-        if not vid:
-            vid = YouTube(self.url,
-                      on_progress_callback=on_progress)
+    def download_video(self):
+        """downloads single video, Uses Progressive download"""
+        vid = YouTube(self.url,on_progress_callback=on_progress)
         only_audio = None
         
         while not only_audio:
