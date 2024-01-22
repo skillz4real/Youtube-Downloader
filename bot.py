@@ -10,7 +10,7 @@ class bot:
         self.object = input("Downloading a (V)ideo or a (P)laylist? ").strip().lower()
         if self.object not in ('p','v'):
             self.object = None
-        self.url = input("Paste the url of the object (the playlist,channel or video) ").strip().lower()
+        self.url = input("Paste the url of the object (the playlist,channel or video) ").strip()
         while True:
             user_input = input("Would you want to authenticate your YouTube Account?(y/n)").lower().strip()
             if user_input in ('y','n',''):
