@@ -23,33 +23,21 @@ class bot:
         """Chose what function to call"""
         YT_obj = None
         if self.auth == True:
-            YT_obj = self.oauth()
+            oauth = self.oauth()
         if self.object == 'p':
-            self.download_playlist()
+            self.download_playlist(oauth)
         if self.object == 'v':
-            self.download_video(YT_obj)
+            self.download_video(oauth)
 
     def oauth(self):
         """Authetication function"""
-        while True:
-            print("Select your authentication method: (1)Through Browser or (2)Through command-line")
-            try:
-                user_input = int(input().strip())
-            except:
-                print("Please enter a valid choice")
-            if user_input in (1,2):
-                choice = user_input
-                break
-            else:
-                print("Please enter a valid choice")
-        if choice == 1:
-            if self.object == 'v':
-                return YouTube(self.url,
-                               use_oauth=True, 
-                               allow_oauth_cache=True,
-                               on_progress_callback=on_progress)
-            if self.object == 'p':
-                pass
+        if self.object == 'v':
+            return YouTube(self.url,
+                           use_oauth=True, 
+                           allow_oauth_cache=True,
+                           on_progress_callback=on_progress)
+        if self.object == 'p':
+            return 1
                 
 
 
@@ -69,10 +57,9 @@ class bot:
 
 
 
-    def download_playlist(self, playlist=None):
+    def download_playlist(self, p_oauth=None):
         """Downloading the playlist in a folder with same title"""
-        if not playlist:
-            playlist = Playlist(self.url)
+        playlist = Playlist(self.url)
         only_audio = None
         
         #asking user if he needs video or only_audio
@@ -86,12 +73,12 @@ class bot:
 
         #user needs to make sure the playlist is set to Public on YouTube
         try:
-            assert(playlist.title)
+            directory = playlist.title
         except:
-            print(f"Please make sure the playlist is publicly available or add your OAuth keys")
-            return 0
+            print(f"This playlist is not publicly available. Please make sure the playlist is publicly available or use the Authetication option. If you did authetify you can ignore this message")
+            directory = "ChangeThisName"
+            #return 0
         #creating folder to download videos will fail if user doesn't have appropriate permissions
-        directory = playlist.title
         try:
             os.mkdir(f'{directory}')
             os.chdir(f"{directory}")
@@ -106,8 +93,9 @@ class bot:
         for vid in playlist.videos:
             print(f"downloading {vid.title}\n")
             vid.register_on_progress_callback(on_progress)
-            vid.use_oauth = True
-            vid.allow_oauth_cache = True
+            if p_oauth:
+                vid.use_oauth = True
+                vid.allow_oauth_cache = True
             if only_audio:
                 stream = vid.streams.filter(only_audio=only_audio).filter().last()
                 stream.download()
