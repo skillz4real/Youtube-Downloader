@@ -21,13 +21,13 @@ class bot:
 
     def chose_function(self):
         """Chose what function to call"""
-        oauth = None
+        
         if self.auth == True:
-            oauth = self.oauth()
+            self.oauth()
         if self.object == 'p':
-            self.download_playlist(oauth)
+            self.download_playlist()
         if self.object == 'v':
-            self.download_video(oauth)
+            self.download_video()
 
     def oauth(self):
         """Authetication function"""
