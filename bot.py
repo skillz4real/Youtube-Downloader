@@ -21,7 +21,7 @@ class bot:
 
     def chose_function(self):
         """Chose what function to call"""
-        YT_obj = None
+        oauth = None
         if self.auth == True:
             oauth = self.oauth()
         if self.object == 'p':
