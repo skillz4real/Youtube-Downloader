@@ -53,17 +53,17 @@ class bot:
 
             
         print("For a more secure app YTDL checks the environment variable $YT_OAUTH before prompting you for your keys. To avoid pasting your keys at each use you can set the keys in your terminal before launching running the bot or add 'export YT_OAUTH=<your keys>' to your shell rc file")
-        time.sleep(5)
-        os.mkdir("__cache__")
-        oauth_keys_value = os.getenv("YT_OAUTH")
-        if not oauth_keys:
-            oauth_keys = input("Please enter your OAUTH keys: ")
-        json.dumps({"oauth_keys":})
-        cache_dir = pathlib.Path(__file__).parent.resolve()/"__cache__"
-        token_file = os.path.join(cache_dir,"tokens.json")
-        with open(token_file, "w"):
+        #time.sleep(5)
+        #os.mkdir("__cache__")
+        #oauth_keys_value = os.getenv("YT_OAUTH")
+        #if not oauth_keys:
+            #    oauth_keys = input("Please enter your OAUTH keys: ")
+        #json.dumps({"oauth_keys":})
+        #cache_dir = pathlib.Path(__file__).parent.resolve()/"__cache__"
+        #token_file = os.path.join(cache_dir,"tokens.json")
+        #with open(token_file, "w"):
             
-        return oauth_keys
+            #return oauth_keys
 
 
 
