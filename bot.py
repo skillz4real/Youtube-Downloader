@@ -77,16 +77,6 @@ class bot:
             vid.register_on_progress_callback(on_progress)
             self.download_video(vid, only_audio)
 
-            #print(f"downloading {vid.title}\n")
-            #vid.register_on_progress_callback(on_progress)
-            #if p_oauth:
-            #    vid.use_oauth = True
-            #    vid.allow_oauth_cache = True
-            #if only_audio:
-            #    stream = vid.streams.filter(only_audio=only_audio).last()
-            #    stream.download()
-            #    title = stream.title
-
 
     def download_video(self, vid=None, only_audio=None):
         """downloads single video, Uses Progressive download"""
@@ -99,14 +89,14 @@ class bot:
         if only_audio:
             stream = vid.streams.filter(only_audio=only_audio).filter().last()
             title = stream.title
-            print(f"Downloading {title}")
+            print(f"\nDownloading {title}\n")
             stream.download()
             ext = stream.mime_type.split('/')[1]
             os.rename(f"{title}.{ext}", f"{title}_audio.{ext}")
         else:
             stream = vid.streams.order_by("resolution").filter(progressive=True).last()
             title = stream.title
-            print(f"Downloading {title}")
+            print(f"\nDownloading {title}\n")
             stream.download()
        
     def download_channel(self):
