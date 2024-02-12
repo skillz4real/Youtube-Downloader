@@ -79,6 +79,19 @@ class bot:
             vid.register_on_progress_callback(on_progress)
             self.download_video(vid, only_audio)
 
+    def check_if_exist(self, title:str, ext:str, only_audio:bool):
+        #list directory
+        folder_content = os.listdir()
+        if only_audio:
+            audio = "_audio"
+        else:
+            audio = ""
+        #check if title + ext + audio is in the folder 
+        if f"{title}{audio}.{ext}" in folder_content:
+            print(f"skipping {title}")
+            return 1
+        else:
+            return 0
 
     def download_video(self, vid=None, only_audio=None):
         """downloads single video, Uses Progressive download"""
@@ -87,19 +100,27 @@ class bot:
         
         if only_audio is None:
             only_audio = self.audio_prompt()
+
        
         if only_audio:
             stream = vid.streams.filter(only_audio=only_audio).filter(file_extension="mp4").last()
             title = stream.title
-            print(f"\nDownloading {title}\n")
-            stream.download()
             ext = stream.mime_type.split('/')[1]
-            os.rename(f"{title}.{ext}", f"{title}_audio.{ext}")
+            print(f"Checking if {title} was already downloaded")
+            skip = self.check_if_exist(title,ext,only_audio)
+            if not skip:
+                print(f"\nDownloading {title}\n")
+                stream.download()
+                os.rename(f"{title}.{ext}", f"{title}_audio.{ext}")
         else:
             stream = vid.streams.order_by("resolution").filter(progressive=True).last()
             title = stream.title
-            print(f"\nDownloading {title}\n")
-            stream.download()
+            ext = stream.mime_type.split('/')[1]
+            print(f"Checking if {title} was already downloaded")
+            skip = self.check_if_exist(title,ext,only_audio)
+            if not skip:
+                print(f"\nDownloading {title}\n")
+                stream.download()
        
     def download_channel(self):
         """Downloads the entire content of a Youtube Channel"""
