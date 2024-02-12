@@ -1,3 +1,5 @@
+#!/bin/python3
+
 from pytube import Playlist, YouTube, Channel
 from pytube.cli import on_progress
 import os
