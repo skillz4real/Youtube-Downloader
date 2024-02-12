@@ -13,9 +13,9 @@ class bot:
                 print("Please enter a valid choice")
             else:
                 break
-        self.url = input("Paste the url of the object (the playlist,channel or video) ").strip()
+        self.url = input("Paste the url of the object (the playlist,channel or video) \n If you are trying to download a channel paste a link to a video from that channel.\n >>> ").strip()
         while True:
-            user_input = input("Would you want to authenticate your YouTube Account?(y/n)").lower().strip()
+            user_input = input("Would you want to authenticate your YouTube Account to bypass age restrictions?(y/n) ").lower().strip()
             if user_input in ('y','n',''):
                 self.auth = user_input == 'y'
                 break
@@ -101,9 +101,25 @@ class bot:
        
     def download_channel(self):
         """Downloads the entire content of a Youtube Channel"""
-        c = Channel(self.url)
+        c = Channel(YouTube(self.url).channel_url)
         only_audio = self.audio_prompt()
+
+        #user needs to make sure the playlist is set to Public on YouTube
+        try:
+            directory = c.channel_name
+        except:
+            print(f"There was an issue getting the channel name. If you know why, you can ignore this message")
+            directory = "Channel"
         
+        #creating folder to download videos will fail if user doesn't have appropriate permissions
+        try:
+            os.mkdir(f'{directory}')
+            os.chdir(f"{directory}")
+        except:
+            try:
+                os.chdir(f"{directory}")
+            except:
+                print("check the permissions for current folder")
         for video in c.videos:
             video.register_on_progress_callback(on_progress)
             self.download_video(video,only_audio)
