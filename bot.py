@@ -87,7 +87,7 @@ class bot:
             only_audio = self.audio_prompt()
        
         if only_audio:
-            stream = vid.streams.filter(only_audio=only_audio).filter().last()
+            stream = vid.streams.filter(only_audio=only_audio).filter(file_extension="mp4").last()
             title = stream.title
             print(f"\nDownloading {title}\n")
             stream.download()
