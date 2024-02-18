@@ -132,8 +132,7 @@ class bot:
         symbols = [",","'"]    # add any symbol i forgot here
         # list(map(lambda x: s.replace(x, " "), symbols)) This won't work because we are trying to apply a function with a list of inputs to a single object and return the final result. the object will go through a bunch of iterations before we return the final result
         for symbol in symbols:
-            s = s.replace(symbol, "")
-            print(s)
+            s = s.replace(symbol, " ")
         return s
 
     def download_channel(self):
