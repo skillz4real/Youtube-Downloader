@@ -5,7 +5,7 @@ from pytube.cli import on_progress
 import os
 import time
 import json
-
+import re
 class bot:
     def __init__(self):
         """instantiate bot with a link and define what the link is pointing to"""
@@ -44,7 +44,7 @@ class bot:
     def audio_prompt(self):
         """Prompt for audio"""
         while True:
-            user_input = input("Do you want to download the video's audio only? (N/y)").lower().strip()
+            user_input = input("Do you want to download the video's audio only? (N/y) ").lower().strip()
             if user_input in ('y','n',''):
                 return user_input == 'y'
             else:
@@ -111,7 +111,13 @@ class bot:
             if not skip:
                 print(f"\nDownloading {title}\n")
                 stream.download()
-                os.rename(f"{title}.{ext}", f"{title}_audio.{ext}")
+                #tries to rename to title_audio but fails if title contains symbols like ',. etc... because of unix stuff the files are strip from that so the rename function fails to find the file by title
+                try:
+                    os.rename(f"{title}.{ext}", f"{title}_audio.{ext}")
+                except:
+                    title = self.cleanstr(title)
+                    os.rename(f"{title}.{ext}", f"{title}_audio.{ext}")
+                    
         else:
             stream = vid.streams.order_by("resolution").filter(progressive=True).last()
             title = stream.title
@@ -121,7 +127,15 @@ class bot:
             if not skip:
                 print(f"\nDownloading {title}\n")
                 stream.download()
-       
+    
+    def cleanstr(self, s:str):
+        symbols = [",","'"]    # add any symbol i forgot here
+        # list(map(lambda x: s.replace(x, " "), symbols)) This won't work because we are trying to apply a function with a list of inputs to a single object and return the final result. the object will go through a bunch of iterations before we return the final result
+        for symbol in symbols:
+            s = s.replace(symbol, "")
+            print(s)
+        return s
+
     def download_channel(self):
         """Downloads the entire content of a Youtube Channel"""
         c = Channel(YouTube(self.url).channel_url)
