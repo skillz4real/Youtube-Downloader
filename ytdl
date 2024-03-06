@@ -1,0 +1,175 @@
+#!/usr/bin/python3
+
+from pytube import Playlist, YouTube, Channel
+from pytube.cli import on_progress
+import os
+import time
+import json
+import re
+
+class Bot:
+    
+    def __init__(self):
+        pass        
+
+    def oauth(self):
+        """Auth function"""
+        print("As part of the authentication process YtDl will download a sample video")
+        print("Please follow the instructions")
+        YouTube("https://www.youtube.com/watch?v=K4TOrB7at0Y",use_oauth=True,allow_oauth_cache=True,on_progress_callback=on_progress).streams.order_by("resolution").first().download()
+    
+    def download_playlist(self, url, verbose, audio_only):
+        """Downloading the playlist in a folder with same title"""
+        playlist = Playlist(url)
+        audio_only = audio_only
+
+        #user needs to make sure the playlist is set to Public on YouTube
+        try:
+            directory = playlist.title
+        except:
+            print(f"This playlist is not publicly available. Please make sure the playlist is publicly available or use the Authentication option. If you did, you can ignore this message")
+            directory = "Playlist"
+        
+        #creating folder to download videos will fail if user doesn't have appropriate permissions
+        try:
+            os.mkdir(f'{directory}')
+            os.chdir(f"{directory}")
+        except:
+            try:
+                os.chdir(f"{directory}")
+            except:
+                print("check the permissions for current folder")
+
+
+        #downloading videos in playlist
+        for vid in playlist:
+            self.download_video(vid, verbose, audio_only)
+
+    def check_if_exist(self, title:str, ext:str, audio_only:bool, verbose:bool):
+        #list directory
+        folder_content = os.listdir()
+        if audio_only:
+            audio = "_audio"
+        else:
+            audio = ""
+        #check if title + ext + audio is in the folder 
+        if f"{title}{audio}.{ext}" in folder_content:
+            if verbose:
+                print(f"skipping {title}")
+            return 1
+        else:
+            return 0
+
+    def download_video(self, url, verbose, audio_only):
+        """downloads single video, Uses Progressive download"""
+        vid = YouTube(url,on_progress_callback=on_progress)
+        
+        if audio_only:
+            stream = vid.streams.filter(only_audio=audio_only).filter(file_extension="mp4").last()
+            title = stream.title
+            ext = stream.mime_type.split('/')[1]
+            
+            if verbose:
+                print(f"\nChecking if \"{title}\" was already downloaded\n")
+            
+            skip = self.check_if_exist(title,ext,audio_only,verbose)
+            if not skip:
+                if verbose:
+                    print(f"\nDownloading \"{title}\" \n")
+                stream.download()
+                #tries to rename to title_audio but fails if title contains symbols like ',. etc... because of unix stuff the files are strip from that so the rename function fails to find the file by title
+                try:
+                    os.rename(f"{title}.{ext}", f"{title}_audio.{ext}")
+                except:
+                    title = self.cleanstr(title)
+                    os.rename(f"{title}.{ext}", f"{title}_audio.{ext}")
+                    
+        else:
+            stream = vid.streams.order_by("resolution").filter(progressive=True).last()
+            title = stream.title
+            ext = stream.mime_type.split('/')[1]
+            if verbose:
+                print(f"Checking if {title} was already downloaded")
+            skip = self.check_if_exist(title,ext,audio_only,verbose)
+            if not skip:
+                if verbose:
+                    print(f"\nDownloading {title}\n")
+                stream.download()
+    
+    def cleanstr(self, s:str):
+        symbols = [",","'",".",'"']    # add any symbol i forgot here
+        # list(map(lambda x: s.replace(x, " "), symbols)) This won't work because we are trying to apply a function with a list of inputs to a single object and return the final result. the object will go through a bunch of iterations before we return the final result
+        for symbol in symbols:
+            s = s.replace(symbol, "")
+        return s
+
+    def download_channel(self, url, verbose, audio_only):
+        """Downloads the entire content of a Youtube Channel"""
+        c = Channel(YouTube(url).channel_url)
+
+        #user needs to make sure the playlist is set to Public on YouTube
+        try:
+            directory = c.channel_name
+        except:
+            print(f"There was an issue getting the channel name.")
+            directory = "Channel"
+        
+        #creating folder to download videos will fail if user doesn't have appropriate permissions
+        try:
+            os.mkdir(f'{directory}')
+            os.chdir(f"{directory}")
+        except:
+            try:
+                os.chdir(f"{directory}")
+            except:
+                print("check the permissions for current folder")
+        for video in c:
+            self.download_video(video,verbose,audio_only)
+            
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        prog = "ytdl",
+        description = "Downloads video and audio content from Youtube",
+        epilog=""
+            )
+
+    parser.add_argument("-v", "--video", help="takes in the url to a video and downloads it")
+    parser.add_argument("-a","--audio-only", action="store_true", help="specifies audio only", default=False, dest="audio_only")
+    parser.add_argument("--verbose", action="store_true", help="Increase verbosity", default=False)
+    parser.add_argument("-c", "--channel", help="takes in the url to a video and downloads to channel the video is from")
+    parser.add_argument("-p", "--playlist", help="takes in the link to a playlist")
+    parser.add_argument("--auth", action="store_true", help="authenticate using oauth, this will open a browser in your window")
+    args = parser.parse_args()
+
+    if args.video and (args.playlist or args.channel):
+        raise Exception("can't define video and playlist or channel at the same time")
+
+    if args.channel and (args.playlist or args.video):
+        raise Exception("can't define channel and playlist or video at the same time")
+
+    if args.playlist and (args.channel or args.video):
+        raise Exception("can't define playlist and video or channel at the same time")
+    
+    asset = args.video or args.channel or args.playlist
+
+    try:
+        assert asset
+    except:
+        print("You have to define some sort of asset (a video, a playlist or a channel)")
+    
+    bot = Bot()
+    if args.auth:
+        bot.oauth()
+
+    if args.video:
+        bot.download_video(args.video, args.verbose, args.audio_only)
+    elif args.playlist:
+        bot.download_playlist(args.playlist, args.verbose, args.audio_only)
+    elif args.channel:
+        bot.download_channel(args.channel, args.verbose, args.audio_only)
+    else:
+        print("Error parsing asset argument")
