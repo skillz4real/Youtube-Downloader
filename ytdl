@@ -1,12 +1,13 @@
 #!/usr/bin/python3
 
 from pytube import Playlist, YouTube, Channel
+from pytube.exceptions import RegexMatchError
 from pytube.cli import on_progress
 import os
 import sys
 import logging
 from datetime import datetime
-
+import string
 
 class Downloader:
     def __init__(self):
@@ -17,9 +18,9 @@ class Downloader:
         """Auth function"""
         print("As part of the authentication process YtDl will download a sample video")
         print("Please follow the instructions")
-        YouTube("https://www.youtube.com/watch?v=K4TOrB7at0Y",use_oauth=True,allow_oauth_cache=True,on_progress_callback=on_progress).streams.order_by("resolution").first().download()
+        YouTube("https://www.youtube.com/watch?v=YpugK0RpEaU&list",use_oauth=True,allow_oauth_cache=True,on_progress_callback=on_progress).streams.order_by("resolution").first().download()
     
-    def download_playlist(self, url, verbose, audio_only, output, quiet):
+    def download_playlist(self, url, verbose, audio_only, output, quiet, auth):
         """Downloading the playlist in a folder with same title"""
         playlist = Playlist(url)
         audio_only = audio_only
@@ -27,8 +28,8 @@ class Downloader:
             directory = playlist.title
         except KeyError:
             if not quiet:
-                raise Exception(f"This playlist is not publicly available. Either use authentication flag or set it as public")
-            self.logger.critical(f"{datetime.now()} This playlist is not publicly available. Either use authentication flag or set it as public. url = {url}")
+                raise Exception(f"This playlist is not publicly available.")
+            self.logger.critical(f"{datetime.now()} This playlist is not publicly available. url = {url}")
             sys.exit(1) 
         except:
             if not quiet:
@@ -38,8 +39,8 @@ class Downloader:
 
         self.prepping_dir(path=output, dir=directory)
 
-        for vid in playlist:
-            self.download_video(url=video,verbose=verbose,audio_only=audio_only,quiet=quiet)
+        for vid_url in playlist:
+            self.download_video(url=vid_url,verbose=verbose,audio_only=audio_only,quiet=quiet,auth=auth)
     
     def check_if_exist(self, title:str, ext:str, audio_only:bool, verbose:bool):
         #list directory
@@ -57,10 +58,28 @@ class Downloader:
         else:
             return 0
 
-    def download_video(self, url, verbose, audio_only, quiet, output="./"):
+    def download_video(self, url, verbose, audio_only, quiet, auth=False, output="./"):
         """downloads single video, Uses Progressive download"""
+        
+        #logic being similar to chmod 600 in linux
+        #0 no flags
+        #1 verbose
+        #2 auth
+        #3 auth + verbose
+        flags = 0
         if verbose:
-            vid = YouTube(url,on_progress_callback=on_progress)
+            flags+=1
+        if auth:
+            flags+=2
+        print(flags) 
+        if flags == 1:
+            vid = YouTube(url, on_progress_callback=on_progress)
+            print('verbose flag set')
+        elif flags == 2:
+            vid = YouTube(url, use_oauth=True, allow_oauth_cache=True)
+        elif flags == 3:
+            vid = YouTube(url, on_progress_callback=on_progress, use_oauth=True, allow_oauth_cache=True)
+            print('auth and verbose flags set')
         else:
             vid = YouTube(url)
         
@@ -87,8 +106,8 @@ class Downloader:
                         os.rename(f"{title}.{ext}", f"{title}_audio.{ext}")
                     except FileNotFoundError:
                         if not quiet:
-                            raise Exception("Bug in title sanitization check line 93")
-                        self.logger.critical(f"{datetime.now()} Bug in title sanitization check line 93 of main module")
+                            raise Exception("Bug in title sanitization")
+                        self.logger.critical(f"{datetime.now()} Bug in title sanitization")
                         sys.exit(1)
 
                     
@@ -107,28 +126,38 @@ class Downloader:
     
     def cleanstr(self, s:str):
         """Operating systems tend to rename files to drop certain characters. This function does the same so that our new cleaned file will match the actual file name in the filesystem"""
-        symbols = [",","'",".",'"','?']    # add any symbol i forgot here
+        symbols = [':','#','~','|',",","'",".",'"','?','*','$','/']    # add any symbol i forgot here
+        #symbols = string.punctuation
         # list(map(lambda x: s.replace(x, " "), symbols)) This won't work because we are trying to apply a function with a list of inputs to a single object and return the final result. the object will go through a bunch of iterations before we return the final result
         for symbol in symbols:
             s = s.replace(symbol, "")
         return s
 
-    def download_channel(self, url, verbose, audio_only, output, quiet):
+    def download_channel(self, url, verbose, audio_only, output, quiet,auth):
         """Downloads the entire content of a Youtube Channel"""
-        c = Channel(YouTube(url).channel_url)
+        try:
+            c = Channel(YouTube(url).channel_url)
+        except RegexMatchError:
+            sys.stderr.write("Error: Make sure it is a link to a video not the link to the channel\n")
+            self.logger.critical("Wrong link format given. Use the link to a video not to the channel")
+            sys.exit(1)
+
+
+
 
         #user needs to make sure the playlist is set to Public on YouTube
         try:
             directory = c.channel_name
         except:
             if not quiet:
-                sys.stderr.write(f"There was a bug trying to get the channel name.")
+                sys.stderr.write(f"There was a bug trying to get the channel name.\n")
             self.logger.warning(f"{datetime.now()} There was a bug trying to get the channel name")
             directory = "Channel"
         
         self.prepping_dir(path=output,dir=directory)
+        print(c)
         for video in c:
-            self.download_video(url=video,verbose=verbose,audio_only=audio_only,quiet=quiet)
+            self.download_video(url=video,verbose=verbose,audio_only=audio_only,quiet=quiet,auth=auth)
    
 
     def prepping_dir(self, path="./", dir=""):
@@ -196,13 +225,13 @@ if __name__ == "__main__":
 
     if args.video:
         bot.logger.info(f"{datetime.now()} Downloading a video")
-        bot.download_video(url=args.video, verbose=args.verbose, audio_only=args.audio_only, output=args.output, quiet=args.quiet)
+        bot.download_video(url=args.video, verbose=args.verbose, audio_only=args.audio_only, output=args.output, quiet=args.quiet, auth=args.auth)
     elif args.playlist:
         bot.logger.info(f"{datetime.now()} Downloading content from a Playlist")
-        bot.download_playlist(url=args.playlist, verbose=args.verbose, audio_only=args.audio_only, output=args.output, quiet=args.quiet)
+        bot.download_playlist(url=args.playlist, verbose=args.verbose, audio_only=args.audio_only, output=args.output, quiet=args.quiet, auth=args.auth)
     elif args.channel:
         bot.logger.info(f"{datetime.now()} Downloading content from a channel")
-        bot.download_channel(url=args.channel, verbose=args.verbose, audio_only=args.audio_only, output=args.output, quiet=args.quiet)
+        bot.download_channel(url=args.channel, verbose=args.verbose, audio_only=args.audio_only, output=args.output, quiet=args.quiet, auth=args.auth)
     else:
         print("Error parsing asset argument")
         bot.logger.critical(f"{datetime.now()} error parsing args")

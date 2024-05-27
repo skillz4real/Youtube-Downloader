@@ -64,4 +64,7 @@ Youtube-Downloader is released under the [GNU LICENSE](LICENSE).
 
 For support, feature requests, or bug reports, please file an issue in the [GitHub issue tracker](https://github.com/skillz4real/Youtube-Downloader/issues).
 
+## > [!NOTE]
+> the pytube library has a shortage of maintainer and YouTube is a dynamic platform so things may break and you might need to go to the github issue page to apply patches
+
 ---
