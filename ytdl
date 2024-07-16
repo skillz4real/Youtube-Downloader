@@ -1,13 +1,14 @@
 #!/usr/bin/python3
 
-from pytube import Playlist, YouTube, Channel
-from pytube.exceptions import RegexMatchError
-from pytube.cli import on_progress
+import logging
 import os
 import sys
-import logging
 from datetime import datetime
-import string
+
+from pytube import Channel, Playlist, YouTube
+from pytube.cli import on_progress
+from pytube.exceptions import RegexMatchError
+
 
 class Downloader:
     def __init__(self):
@@ -28,7 +29,7 @@ class Downloader:
             directory = playlist.title
         except KeyError:
             if not quiet:
-                raise Exception(f"This playlist is not publicly available.")
+                raise Exception("This playlist is not publicly available.")
             self.logger.critical(f"{datetime.now()} This playlist is not publicly available. url = {url}")
             sys.exit(1) 
         except:
@@ -151,7 +152,7 @@ class Downloader:
             directory = c.channel_name
         except:
             if not quiet:
-                sys.stderr.write(f"There was a bug trying to get the channel name.\n")
+                sys.stderr.write("There was a bug trying to get the channel name.\n")
             self.logger.warning(f"{datetime.now()} There was a bug trying to get the channel name")
             directory = "Channel"
         
@@ -169,7 +170,7 @@ class Downloader:
         except:
             try:
                 os.chdir(f"{path}/{dir}")
-            except PermissionError as pe:
+            except PermissionError:
                 if not quiet:
                     raise PermissionError(f"check write permissions for {path}")
                 sys.exit(1)
